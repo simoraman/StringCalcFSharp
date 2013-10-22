@@ -26,17 +26,21 @@ let sumUsingDelimiter(x:string, delimiter:string) =
 
 let parseDelimiter(x:string) =
     if x.[2] = '[' then 
-        let pattern = "\/\/\[(?'delimiter'.*)\]"
-        Regex.Match(x, pattern).Groups.["delimiter"].Value 
-    else x.Substring(2,1)   
+        let pattern="^\/\/(?<delimiters>.*?)\\n(?<valuesString>.*)"
+        let regexMatch = Regex.Match(x, pattern)
+        let delimiters = regexMatch.Groups.["delimiters"].Value.Replace("][",",").Replace("]", "").Replace("[", "").Split[|','|]
+        let valuesString = regexMatch.Groups.["valuesString"].Value
+        let deli = List.ofArray delimiters
+        List.fold (fun (acc:string) item -> acc.Replace(item, ",")) valuesString deli
+    else 
+        let delimeter = x.Substring(2,1)
+        let rest = x.Substring(4)
+        rest.Replace(delimeter, ",")
   
 let AddString(x:string) =
     match x with
     | "" -> 0
-    | Delimiter x -> 
-        let delimiter = parseDelimiter(x)
-        let str = x.[x.IndexOf('\n')+1..].Replace(delimiter, ",")
-        sumUsingDelimiter(str, ",")
+    | Delimiter x -> sumUsingDelimiter(parseDelimiter(x), ",")
     | _ -> sumUsingDelimiter(x, ",")
         
 [<TestFixture>] 
@@ -75,3 +79,6 @@ type ``Given adding strings`` () =
     [<Test>]
     member x.``can have several delimiters``()=
         AddString "//[*][%]\n1*2%3" |> should equal 6
+    [<Test>]
+    member x.``can have several delimiters of any length``()=
+        AddString "//[***][%]\n1***2%3" |> should equal 6
