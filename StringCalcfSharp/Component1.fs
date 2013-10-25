@@ -8,14 +8,14 @@ let rec sumList(list, acc) =
     | [] -> acc
     | hd :: tl -> sumList(tl, System.Int32.Parse(hd) + acc)
  
-let (|Delimiter|_|) (str: string) =
-   if str.StartsWith("//") then Some(str)
-   else None
+let (|Empty|Delimiter|De|) (str : string) =
+    if str="" then Empty else
+    if str.StartsWith("//") then Delimiter
+    else De
 
-let sumUsingDelimiter(x:string, delimiter:string) = 
+let sumUsingDelimiter(delimited:string) = 
     let split = 
-            let temp = delimiter.ToCharArray()
-            List.ofArray(x.Split(temp))
+            List.ofArray(delimited.Split(','))
             |> List.map(fun x -> List.ofArray(x.Split[|'\n'|])) 
             |> List.collect(fun x -> x)
             |> List.filter(fun x -> System.Int32.Parse(x) < 1000)
@@ -39,9 +39,9 @@ let parseDelimiter(x:string) =
   
 let AddString(x:string) =
     match x with
-    | "" -> 0
-    | Delimiter x -> sumUsingDelimiter(parseDelimiter(x), ",")
-    | _ -> sumUsingDelimiter(x, ",")
+    | Empty -> 0
+    | Delimiter -> parseDelimiter x |> sumUsingDelimiter
+    | _ -> sumUsingDelimiter x 
         
 [<TestFixture>] 
 type ``Given adding strings`` () =
