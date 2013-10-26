@@ -1,2 +1,18 @@
 
 *.dll
+
+FsUnit.1.2.1.0/tools/install.ps1
+
+NUnit.2.6.2/NUnit.2.6.2.nupkg
+
+NUnit.2.6.2/lib/nunit.framework.xml
+
+NUnit.2.6.2/license.txt
+
+StringCalcfSharp.userprefs
+
+StringCalcfSharp/bin/Debug/StringCalcfSharp.dll.mdb
+
+*.xml
+
+*.test-cache
