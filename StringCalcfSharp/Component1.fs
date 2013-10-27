@@ -6,7 +6,7 @@ open System.Text.RegularExpressions
 let rec sumList(list, acc) =
     match list with
     | [] -> acc
-    | hd :: tl -> sumList(tl, System.Int32.Parse(hd) + acc)
+    | hd :: tl -> sumList(tl, hd + acc)
  
 let (|Empty|HasDelimiters|De|) (str : string) =
     if str="" then Empty else
@@ -18,11 +18,12 @@ let sumDelimited(delimited:string) =
             List.ofArray(delimited.Split(','))
             |> List.map(fun x -> List.ofArray(x.Split[|'\n'|])) 
             |> List.collect(fun x -> x)
-            |> List.filter(fun x -> System.Int32.Parse(x) < 1000)
-    let negatives = split |> List.filter (fun str -> str.[0] = '-')
+            |> List.map(fun x -> System.Int32.Parse(x))
+            |> List.filter(fun x -> x < 1000)
+    let negatives = split |> List.filter (fun number -> number < 0)
     match negatives.Length with
     | 0 -> sumList(split, 0)
-    | _ -> failwith ("Negatives not allowed: " + (negatives |> String.concat ","))
+    | _ -> failwith ("Negatives not allowed: " + (negatives |> List.map(fun x -> x.ToString()) |> String.concat(",") ))
 
 let unifyDelimiters(input:string) =
     if input.[2] = '[' then 
@@ -30,7 +31,7 @@ let unifyDelimiters(input:string) =
         let regexMatch = Regex.Match(input, pattern)
         let delimiters = regexMatch.Groups.["delimiters"].Value.Replace("][",",").Replace("]", "").Replace("[", "").Split[|','|]
         let valuesString = regexMatch.Groups.["valuesString"].Value
-        let deli = List.ofArray delimiters
+        let deli = (List.ofArray delimiters)
         List.fold (fun (acc:string) item -> acc.Replace(item, ",")) valuesString deli
     else 
         let delimeter = input.Substring(2,1)
