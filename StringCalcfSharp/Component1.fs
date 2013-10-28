@@ -13,16 +13,24 @@ let (|Empty|HasDelimiters|De|) (str : string) =
     if str.StartsWith("//") then HasDelimiters
     else De
 
+let split(str:string) = 
+    List.ofArray(str.Split(',')) 
+    |> List.map(fun x -> List.ofArray(x.Split[|'\n'|])) 
+    |> List.collect(fun x -> x)
+   
+let parseNumbers numbers = numbers |> List.map(fun x -> System.Int32.Parse(x))
+
+let filterOverThousand numbers = numbers |> List.filter(fun x -> x < 1000) 
+   
 let sumDelimited(delimited:string) = 
-    let split = 
-            List.ofArray(delimited.Split(','))
-            |> List.map(fun x -> List.ofArray(x.Split[|'\n'|])) 
-            |> List.collect(fun x -> x)
-            |> List.map(fun x -> System.Int32.Parse(x))
-            |> List.filter(fun x -> x < 1000)
-    let negatives = split |> List.filter (fun number -> number < 0)
+    let numbers = 
+            delimited 
+            |> split 
+            |> parseNumbers
+            |> filterOverThousand
+    let negatives = numbers |> List.filter (fun number -> number < 0)
     match negatives.Length with
-    | 0 -> sumList(split, 0)
+    | 0 -> sumList(numbers, 0)
     | _ -> failwith ("Negatives not allowed: " + (negatives |> List.map(fun x -> x.ToString()) |> String.concat(",") ))
 
 let unifyDelimiters(input:string) =
