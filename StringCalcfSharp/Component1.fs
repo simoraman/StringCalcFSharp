@@ -8,10 +8,10 @@ let rec sumList(list, acc) =
     | [] -> acc
     | hd :: tl -> sumList(tl, hd + acc)
  
-let (|Empty|HasDelimiters|De|) (str : string) =
+let (|Empty|HasDelimiters|Normal|) (str : string) =
     if str="" then Empty else
     if str.StartsWith("//") then HasDelimiters
-    else De
+    else Normal
 
 let split(str:string) = 
     List.ofArray(str.Split(',')) 
@@ -33,14 +33,20 @@ let sumDelimited(delimited:string) =
     | 0 -> sumList(numbers, 0)
     | _ -> failwith ("Negatives not allowed: " + (negatives |> List.map(fun x -> x.ToString()) |> String.concat(",") ))
 
+let gatherDelimiters (x:string) = 
+    x.Replace("][",",").Replace("]", "").Replace("[", "").Split[|','|] |> List.ofArray
+    
+let separateDelimitersAndValues (input : string) = 
+    let pattern="^\/\/(?<delimiters>.*?)\\n(?<valuesString>.*)"
+    let regexMatch = Regex.Match(input, pattern)  
+    let delimiters = gatherDelimiters regexMatch.Groups.["delimiters"].Value
+    let valuesString = regexMatch.Groups.["valuesString"].Value
+    (delimiters,valuesString)  
+    
 let unifyDelimiters(input:string) =
     if input.[2] = '[' then 
-        let pattern="^\/\/(?<delimiters>.*?)\\n(?<valuesString>.*)"
-        let regexMatch = Regex.Match(input, pattern)
-        let delimiters = regexMatch.Groups.["delimiters"].Value.Replace("][",",").Replace("]", "").Replace("[", "").Split[|','|]
-        let valuesString = regexMatch.Groups.["valuesString"].Value
-        let deli = (List.ofArray delimiters)
-        List.fold (fun (acc:string) item -> acc.Replace(item, ",")) valuesString deli
+        let delimiters, values  = separateDelimitersAndValues input
+        List.fold (fun (acc:string) item -> acc.Replace(item, ",")) values delimiters
     else 
         let delimeter = input.Substring(2,1)
         let rest = input.Substring(4)
